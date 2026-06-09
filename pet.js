@@ -215,7 +215,7 @@ style.textContent = `
 .jkp-disc.spin { animation: jkpSpin 8s linear infinite; }
 @keyframes jkpSpin { to{transform:rotate(360deg)} }
 .jkp-disc::after { content:''; width:18px; height:18px; border-radius:50%; background:var(--gold); border:2px solid var(--paper); }
-.jkp-bgm-title { font-family: var(--font-cal); font-size: 20px; color: var(--ink); letter-spacing: 3px; margin-bottom: 14px; }
+.jkp-bgm-title { font-family: var(--font-cal); font-size: 20px; color: #2e5c4f; letter-spacing: 3px; margin-bottom: 14px; }
 .jkp-ctrls { display: flex; align-items: center; gap: 18px; margin-bottom: 16px; }
 .jkp-btn {
     width: 42px; height: 42px; border-radius: 50%; border: 1px solid rgba(138,106,56,.4);
@@ -225,17 +225,17 @@ style.textContent = `
 .jkp-btn:hover { background: rgba(150,118,60,.15); }
 .jkp-btn.play {
     width: 52px; height: 52px; font-size: 20px;
-    background: linear-gradient(135deg, var(--wax), #7a2719); border: none; color: #fbeede;
+    background: linear-gradient(135deg, #2e5c4f, #1a3d33); border: none; color: #e8f5e9;
 }
 .jkp-btn.play:hover { transform: scale(1.05); }
 .jkp-bar-wrap { width: 100%; margin-bottom: 14px; }
-.jkp-bar { width: 100%; height: 4px; background: rgba(138,106,56,.15); border-radius: 2px; cursor: pointer; }
-.jkp-bar-fill { height: 100%; background: linear-gradient(90deg, var(--wax), var(--gold)); border-radius: 2px; width: 0%; transition: width .3s; }
+.jkp-bar { width: 100%; height: 4px; background: rgba(46,92,79,.15); border-radius: 2px; cursor: pointer; }
+.jkp-bar-fill { height: 100%; background: linear-gradient(90deg, #2e5c4f, #5f8f7e); border-radius: 2px; width: 0%; transition: width .3s; }
 .jkp-bar-time { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-faint); margin-top: 5px; }
 .jkp-lyrics { width: 100%; height: 150px; overflow: hidden; margin-top: 10px; mask-image: linear-gradient(transparent, black 20%, black 80%, transparent); -webkit-mask-image: linear-gradient(transparent, black 20%, black 80%, transparent); }
 .jkp-lyrics-in { transition: transform .5s ease; }
 .jkp-lrc { text-align: center; padding: 7px 0; font-size: 13px; color: var(--ink-faint); transition: all .3s; }
-.jkp-lrc.on { font-size: 15px; color: var(--wax); font-weight: 700; }
+.jkp-lrc.on { font-size: 15px; color: #2e5c4f; font-weight: 700; }
 
 /* 桌面歌词 */
 .jkp-desk-lrc {
