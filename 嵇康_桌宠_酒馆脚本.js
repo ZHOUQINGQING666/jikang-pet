@@ -8,12 +8,16 @@
 (function() {
 'use strict';
 
+function boot(){
 const PET_ID = 'jk-pet-root';
-if (document.getElementById(PET_ID)) return;
 
-const doc = document;
+// 获取主文档（适配酒馆iframe环境）
+let doc = document;
+try { if (window.parent && window.parent.document) doc = window.parent.document; } catch(e) {}
 
-// ★★★ 替换这两个URL ★★★
+if (doc.getElementById(PET_ID)) return;
+
+// ★★★ 资源URL ★★★
 const IMG_PET = 'https://files.catbox.moe/c9cqkf.png';
 const BGM_URL = 'https://files.catbox.moe/0v20em.mp3';
 
@@ -32,13 +36,18 @@ style.textContent = `
     --font-cal: 'Ma Shan Zheng','KaiTi',serif;
     --radius: 16px;
     font-family: var(--font-body);
+    visibility: visible !important; opacity: 1 !important;
+    display: block !important; pointer-events: auto !important;
 }
+#jk-pet-root * { visibility: visible !important; }
+#jk-pet-root img { display: inline-block !important; visibility: visible !important; opacity: 1 !important; max-width: 100% !important; }
 
 /* 桌宠浮窗 - 角色立绘形态 */
 .jkp-float {
-    position: fixed; bottom: 20px; right: 40px;
-    z-index: 99999; user-select: none;
+    position: fixed !important; bottom: 20px !important; right: 40px !important;
+    z-index: 2147483647 !important; user-select: none;
     width: 150px; height: 150px;
+    display: block !important; pointer-events: auto !important;
 }
 .jkp-avatar {
     width: 100%; height: 100%;
@@ -197,13 +206,14 @@ style.textContent = `
 
 /* 桌面歌词 */
 .jkp-desk-lrc {
-    position: fixed; bottom: 115px; left: 50%; transform: translateX(-50%);
-    z-index: 99998; pointer-events: none; text-align: center;
+    position: fixed !important; bottom: 180px !important; left: 50% !important; transform: translateX(-50%);
+    z-index: 2147483646 !important; pointer-events: none; text-align: center;
     font-family: var(--font-cal); font-size: 22px; color: var(--wax);
     text-shadow: 0 1px 4px rgba(245,239,225,.9), 0 0 12px rgba(158,59,42,.2);
     letter-spacing: 3px; opacity: 0; transition: opacity .5s;
+    display: block !important;
 }
-.jkp-desk-lrc.show { opacity: 1; }
+.jkp-desk-lrc.show { opacity: 1 !important; }
 
 /* 已存信件 */
 .jkp-saved { padding: 10px 14px; background: rgba(255,252,244,.5); border: 1px solid rgba(138,106,56,.25); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: all .2s; }
@@ -451,4 +461,9 @@ function tick(){
 function fmtT(s){if(!s||isNaN(s))return'0:00';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');}
 
 console.log('[嵇康桌宠] v3.0 已加载 — 立绘形态 / 自动播放 / 桌面歌词');
+}
+
+// 确保DOM加载完毕再初始化
+if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',boot);}
+else{setTimeout(boot,300);}
 })();
