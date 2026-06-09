@@ -13,7 +13,28 @@ const PET_ID = 'jk-pet-root';
 
 // 获取主文档（适配酒馆iframe环境）
 let doc = document;
-try { if (window.parent && window.parent.document) doc = window.parent.document; } catch(e) {}
+let win = window;
+try {
+    if (window.parent && window.parent !== window) {
+        const parentDoc = window.parent.document;
+        if (parentDoc && parentDoc.body) {
+            doc = parentDoc;
+            win = window.parent;
+        }
+    }
+} catch(e) {
+    doc = document;
+    win = window;
+}
+
+// 等待 body 准备就绪
+if (!doc.body || !doc.head) {
+    setTimeout(boot, 100);
+    return;
+}
+
+// 清理旧实例
+[document, doc].forEach(d => { try { const el = d.getElementById(PET_ID); if(el) el.remove(); const st = d.getElementById('jk-pet-css'); if(st) st.remove(); } catch(e){} });
 
 if (doc.getElementById(PET_ID)) return;
 
@@ -36,18 +57,24 @@ style.textContent = `
     --font-cal: 'Ma Shan Zheng','KaiTi',serif;
     --radius: 16px;
     font-family: var(--font-body);
-    visibility: visible !important; opacity: 1 !important;
-    display: block !important; pointer-events: auto !important;
+    position: fixed !important;
+    top: 0 !important; left: 0 !important;
+    width: 100% !important; height: 100% !important;
+    z-index: 2147483647 !important;
+    display: block !important;
+    pointer-events: none !important;
+    user-select: none;
+    transform: none !important;
 }
 #jk-pet-root * { visibility: visible !important; }
 #jk-pet-root img { display: inline-block !important; visibility: visible !important; opacity: 1 !important; max-width: 100% !important; }
 
 /* 桌宠浮窗 - 角色立绘形态 */
 .jkp-float {
-    position: fixed !important; bottom: 20px !important; right: 40px !important;
-    z-index: 2147483647 !important; user-select: none;
+    position: absolute !important; bottom: 20px !important; right: 40px !important;
+    user-select: none;
     width: 150px; height: 150px;
-    display: block !important; pointer-events: auto !important;
+    pointer-events: auto !important;
 }
 .jkp-avatar {
     width: 100%; height: 100%;
@@ -92,18 +119,18 @@ style.textContent = `
 
 /* 遮罩 + 面板 */
 .jkp-overlay {
-    position: fixed; inset: 0; background: rgba(30,25,15,.4);
-    backdrop-filter: blur(4px); z-index: 100000; display: none;
+    position: absolute; inset: 0; background: rgba(30,25,15,.4);
+    backdrop-filter: blur(4px); display: none; pointer-events: auto;
 }
 .jkp-overlay.open { display: block; }
 .jkp-panel {
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
     width: 480px; max-width: 94vw; max-height: 85vh;
     background: var(--paper); background-image: url('https://files.catbox.moe/f308mq.jpg'); background-size: cover;
     border: 1px solid rgba(138,106,56,.4); border-radius: 20px;
     box-shadow: 0 20px 60px rgba(40,30,15,.4);
     display: none; flex-direction: column; overflow: hidden;
-    z-index: 100001; animation: jkpIn .3s cubic-bezier(.34,1.56,.64,1);
+    animation: jkpIn .3s cubic-bezier(.34,1.56,.64,1); pointer-events: auto;
 }
 @keyframes jkpIn { from{opacity:0;transform:translate(-50%,-50%) scale(.92)} to{opacity:1;transform:translate(-50%,-50%) scale(1)} }
 .jkp-panel.open { display: flex; }
@@ -206,12 +233,11 @@ style.textContent = `
 
 /* 桌面歌词 */
 .jkp-desk-lrc {
-    position: fixed !important; bottom: 180px !important; left: 50% !important; transform: translateX(-50%);
-    z-index: 2147483646 !important; pointer-events: none; text-align: center;
+    position: absolute !important; bottom: 180px !important; left: 50% !important; transform: translateX(-50%);
+    pointer-events: none; text-align: center;
     font-family: var(--font-cal); font-size: 22px; color: var(--wax);
     text-shadow: 0 1px 4px rgba(245,239,225,.9), 0 0 12px rgba(158,59,42,.2);
     letter-spacing: 3px; opacity: 0; transition: opacity .5s;
-    display: block !important;
 }
 .jkp-desk-lrc.show { opacity: 1 !important; }
 
