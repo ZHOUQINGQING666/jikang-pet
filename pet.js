@@ -40,7 +40,13 @@ if (doc.getElementById(PET_ID)) return;
 
 // ★★★ 资源URL ★★★
 const IMG_PET = 'https://files.catbox.moe/c9cqkf.png';
-const BGM_URL = 'https://files.catbox.moe/0v20em.mp3';
+
+// ★★★ 歌单 ★★★
+const PLAYLIST = [
+    { title: '一壶酒换天涯', mp3: 'https://files.catbox.moe/0v20em.mp3', lrc: 'https://files.catbox.moe/5uivqn.lrc' },
+    { title: '阮籍', mp3: 'https://files.catbox.moe/66wrgi.mp3', lrc: 'https://files.catbox.moe/t5jjtd.lrc' }
+];
+let currentTrack = 0;
 
 /* ===== 注入 CSS ===== */
 const style = doc.createElement('style');
@@ -292,19 +298,25 @@ const NPC = [
 
 const LETTER_RULES = `【上帝视角规范】:\n你是全知全能的观察者，窥视角色寄出的信、草稿、残页。\n语言：半文半白，严禁现代白话。【信件本体】必须角色第一人称。\n写信对象不固定——可能写给{{user}}，也可能写给其他人物。\n严禁输出状态栏或变量。\n\n【生成格式（八标签）】:\n【写信时间】:（年月日时辰）\n【写信天气】:（2~12字）\n【写作场景】:（写信时场景）\n【信件本体】:（书信内容）\n【信件类型】:（家书/草稿/普通信件/情书等）\n【信件目前所处位置】:（书案/怀中/灰烬中等）\n【信件当前状态】:（已寄出/完好/已损毁等）\n【字迹如何】:（字迹工整/凌乱等）`;
 
-const LRC = [
-    {t:10.98,s:'[Intro]'},{t:12.72,s:'♪'},
-    {t:24.62,s:'马停在山下 风停在林间'},{t:29.52,s:'抛了丝线入长河 不问谁来收'},
-    {t:34.85,s:'抬头看雁远 低头抚琴弦'},{t:40.53,s:'天地这么大 够我再坐一千年'},
-    {t:46.84,s:'我在山里采野果 披散着头发'},{t:51.64,s:'长啸一声穿过云 不理山下的喧哗'},
-    {t:57.41,s:'不要你的官 不要你的马'},{t:62.85,s:'给我一壶酒 我拿命换一曲天涯'},
-    {t:92.40,s:'炉火还没灭 铁还没打完'},{t:96.96,s:'谁在竹林外偷听 我锤子落得更慢'},
-    {t:102.93,s:'你说世道险 我说世道宽'},{t:108.32,s:'只要别低头 站着死也好过跪着活一万年'},
-    {t:114.39,s:'我在山里采野果 披散着头发'},{t:119.94,s:'长啸一声穿过云 不理山下的喧哗'},
-    {t:125.20,s:'不要你的官 不要你的马'},{t:130.78,s:'给我一壶酒 我拿命换一曲天涯'},
-    {t:142.21,s:'(humming)'},{t:148.24,s:'琴声停了 风也停了'},
-    {t:153.74,s:'该说的话 我都放在弦上了'},{t:162.73,s:'这一曲弹完 就不弹了……'}
-];
+// LRC 动态加载
+let LRC = [];
+async function loadLrc(url) {
+    try {
+        const res = await fetch(url);
+        const text = await res.text();
+        const arr = [];
+        text.split('\n').forEach(line => {
+            const m = line.match(/\[(\d+):(\d+)\.(\d+)\](.*)/);
+            if (m) {
+                const t = +m[1]*60 + +m[2] + (+m[3])/100;
+                const s = m[4].trim();
+                if (s) arr.push({t, s});
+            }
+        });
+        LRC = arr.length ? arr : [{t:0,s:'♪'}];
+    } catch(e) { LRC = [{t:0,s:'♪'}]; }
+}
+loadLrc(PLAYLIST[currentTrack].lrc);
 
 /* ===== 工具 ===== */
 const q = id => doc.getElementById(id);
@@ -433,12 +445,27 @@ let audio=null, playing=false, loop=true;
 const dlrc = q('jkp-dlrc');
 
 function initAudio(){
-    audio=new Audio(BGM_URL);
-    audio.loop=true;
+    audio=new Audio(PLAYLIST[currentTrack].mp3);
+    audio.loop=false;
     audio.volume=0.6;
     audio.onloadedmetadata=()=>{const el=q('jkp-dur');if(el)el.textContent=fmtT(audio.duration);};
     audio.ontimeupdate=tick;
-    audio.onended=()=>{if(!loop){playing=false;const b=q('jkp-play');if(b)b.textContent='▶';const d=q('jkp-disc');if(d)d.classList.remove('spin');dlrc.classList.remove('show');}};
+    audio.onended=()=>{ if(loop){switchTrack((currentTrack+1)%PLAYLIST.length);} else{playing=false;const b=q('jkp-play');if(b)b.textContent='▶';const d=q('jkp-disc');if(d)d.classList.remove('spin');dlrc.classList.remove('show');} };
+}
+
+async function switchTrack(idx){
+    currentTrack=idx;
+    const wasPlaying=playing;
+    if(audio){audio.pause();audio.src='';}
+    await loadLrc(PLAYLIST[currentTrack].lrc);
+    audio=new Audio(PLAYLIST[currentTrack].mp3);
+    audio.loop=false; audio.volume=0.6;
+    audio.onloadedmetadata=()=>{const el=q('jkp-dur');if(el)el.textContent=fmtT(audio.duration);};
+    audio.ontimeupdate=tick;
+    audio.onended=()=>{ if(loop){switchTrack((currentTrack+1)%PLAYLIST.length);} else{playing=false;const b=q('jkp-play');if(b)b.textContent='▶';const d=q('jkp-disc');if(d)d.classList.remove('spin');dlrc.classList.remove('show');} };
+    if(wasPlaying){audio.play().catch(()=>{});playing=true;}
+    const t=q('jkp-bgm-title');if(t)t.textContent=PLAYLIST[currentTrack].title;
+    const lin=q('jkp-lin');if(lin){lin.innerHTML='';LRC.forEach(l=>{const d=doc.createElement('div');d.className='jkp-lrc';d.textContent=l.s;lin.appendChild(d);});}
 }
 
 // 自动播放：打开酒馆即播放BGM
@@ -455,23 +482,15 @@ function openBgm(){ openP('jkp-p-bgm'); initBgmUI(); }
 
 function initBgmUI(){
     const bd=q('jkp-bgm-bd');
-    bd.innerHTML=`<div class="jkp-bgm"><div class="jkp-disc" id="jkp-disc"></div><div class="jkp-bgm-title">一壶酒换天涯</div><div class="jkp-ctrls"><div class="jkp-btn" id="jkp-prev">⏮</div><div class="jkp-btn play" id="jkp-play">${playing?'⏸':'▶'}</div><div class="jkp-btn" id="jkp-loop" style="opacity:${loop?'1':'.5'}">🔁</div></div><div class="jkp-bar-wrap"><div class="jkp-bar" id="jkp-bar"><div class="jkp-bar-fill" id="jkp-fill"></div></div><div class="jkp-bar-time"><span id="jkp-cur">${audio?fmtT(audio.currentTime):'0:00'}</span><span id="jkp-dur">${audio?fmtT(audio.duration):'0:00'}</span></div></div><div class="jkp-lyrics"><div class="jkp-lyrics-in" id="jkp-lin"></div></div></div>`;
+    bd.innerHTML=`<div class="jkp-bgm"><div class="jkp-disc" id="jkp-disc"></div><div class="jkp-bgm-title" id="jkp-bgm-title">${PLAYLIST[currentTrack].title}</div><div class="jkp-ctrls"><div class="jkp-btn" id="jkp-prev">⏮</div><div class="jkp-btn play" id="jkp-play">${playing?'⏸':'▶'}</div><div class="jkp-btn" id="jkp-next">⏭</div><div class="jkp-btn" id="jkp-loop" style="opacity:${loop?'1':'.5'}">🔁</div></div><div class="jkp-bar-wrap"><div class="jkp-bar" id="jkp-bar"><div class="jkp-bar-fill" id="jkp-fill"></div></div><div class="jkp-bar-time"><span id="jkp-cur">${audio?fmtT(audio.currentTime):'0:00'}</span><span id="jkp-dur">${audio?fmtT(audio.duration):'0:00'}</span></div></div><div class="jkp-lyrics"><div class="jkp-lyrics-in" id="jkp-lin"></div></div></div>`;
     const lin=q('jkp-lin');
     LRC.forEach(l=>{const d=doc.createElement('div');d.className='jkp-lrc';d.textContent=l.s;lin.appendChild(d);});
     if(playing) q('jkp-disc').classList.add('spin');
     q('jkp-play').onclick=togglePlay;
-    q('jkp-prev').onclick=()=>{if(audio){audio.currentTime=0;}};
-    q('jkp-loop').onclick=()=>{loop=!loop;if(audio)audio.loop=loop;q('jkp-loop').style.opacity=loop?'1':'.5';};
+    q('jkp-prev').onclick=()=>{ switchTrack((currentTrack-1+PLAYLIST.length)%PLAYLIST.length); };
+    q('jkp-next').onclick=()=>{ switchTrack((currentTrack+1)%PLAYLIST.length); };
+    q('jkp-loop').onclick=()=>{loop=!loop;q('jkp-loop').style.opacity=loop?'1':'.5';};
     q('jkp-bar').onclick=e=>{if(!audio?.duration)return;audio.currentTime=((e.clientX-q('jkp-bar').getBoundingClientRect().left)/q('jkp-bar').offsetWidth)*audio.duration;};
-}
-
-function initAudio(){
-    audio=new Audio(BGM_URL);
-    audio.loop=true;
-    audio.volume=0.6;
-    audio.onloadedmetadata=()=>{const el=q('jkp-dur');if(el)el.textContent=fmtT(audio.duration);};
-    audio.ontimeupdate=tick;
-    audio.onended=()=>{if(loop){audio.currentTime=0;audio.play();}else{playing=false;const b=q('jkp-play');if(b)b.textContent='▶';const d=q('jkp-disc');if(d)d.classList.remove('spin');dlrc.classList.remove('show');}};
 }
 
 function togglePlay(){
