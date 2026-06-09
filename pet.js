@@ -234,12 +234,13 @@ style.textContent = `
 /* 桌面歌词 */
 .jkp-desk-lrc {
     position: absolute !important; bottom: 180px !important; left: 50% !important; transform: translateX(-50%);
-    pointer-events: none; text-align: center;
-    font-family: var(--font-cal); font-size: 22px; color: var(--wax);
-    text-shadow: 0 1px 4px rgba(245,239,225,.9), 0 0 12px rgba(158,59,42,.2);
-    letter-spacing: 3px; opacity: 0; transition: opacity .5s;
+    pointer-events: auto; text-align: center; cursor: grab;
+    font-family: var(--font-cal); font-size: 24px; color: #2e5c4f;
+    text-shadow: 0 1px 3px rgba(46,92,79,.3), 0 0 10px rgba(46,92,79,.15);
+    letter-spacing: 4px; opacity: 0; transition: opacity .5s;
 }
 .jkp-desk-lrc.show { opacity: 1 !important; }
+.jkp-desk-lrc.dragging { cursor: grabbing; transition: none; }
 
 /* 已存信件 */
 .jkp-saved { padding: 10px 14px; background: rgba(255,252,244,.5); border: 1px solid rgba(138,106,56,.25); border-radius: 10px; margin-bottom: 8px; cursor: pointer; transition: all .2s; }
@@ -272,7 +273,7 @@ root.innerHTML = `
         <div class="jkp-mi" data-a="bgm">🎵 听曲</div>
     </div>
 </div>
-<div class="jkp-desk-lrc" id="jkp-dlrc" style="position:absolute!important;bottom:180px!important;left:50%!important;transform:translateX(-50%);pointer-events:none;text-align:center;font-size:22px;letter-spacing:4px;display:block!important;visibility:visible!important;"></div>
+<div class="jkp-desk-lrc" id="jkp-dlrc" style="position:absolute!important;bottom:180px!important;left:50%!important;transform:translateX(-50%);pointer-events:auto;text-align:center;font-size:24px;letter-spacing:4px;display:block!important;visibility:visible!important;color:#2e5c4f;cursor:grab;"></div>
 <div class="jkp-panel" id="jkp-p-letter"><div class="jkp-panel-hd"><img class="deco-l" src="https://files.catbox.moe/xmv6s8.png" style="position:absolute;left:10px;top:7px;height:30px;opacity:.7;pointer-events:none;"><span class="jkp-panel-title">书信往来</span><img class="deco-r" src="https://files.catbox.moe/nvlzew.png" style="position:absolute;right:42px;top:5px;height:26px;opacity:.6;pointer-events:none;"><span class="jkp-panel-x" data-close="letter">✕</span></div><div class="jkp-panel-bd" id="jkp-letter-bd"></div></div>
 <div class="jkp-panel" id="jkp-p-bag"><div class="jkp-panel-hd"><img src="https://files.catbox.moe/p75pn3.png" style="position:absolute;left:10px;top:7px;height:28px;opacity:.7;pointer-events:none;"><span class="jkp-panel-title">行囊</span><img src="https://files.catbox.moe/7kweml.png" style="position:absolute;right:42px;top:5px;height:28px;opacity:.6;pointer-events:none;"><span class="jkp-panel-x" data-close="bag">✕</span></div><div class="jkp-panel-bd" id="jkp-bag-bd"></div></div>
 <div class="jkp-panel" id="jkp-p-bgm"><div class="jkp-panel-hd"><img src="https://files.catbox.moe/lkkzes.png" style="position:absolute;left:10px;top:7px;height:28px;opacity:.7;pointer-events:none;"><span class="jkp-panel-title">听曲</span><img src="https://files.catbox.moe/gimtpi.png" style="position:absolute;right:42px;top:5px;height:28px;opacity:.6;pointer-events:none;"><span class="jkp-panel-x" data-close="bgm">✕</span></div><div class="jkp-panel-bd" id="jkp-bgm-bd"></div></div>
@@ -347,6 +348,13 @@ let menuOn = false, drag = null;
 av.onmousedown = e => { drag = {sx:e.clientX,sy:e.clientY,ox:fl.offsetLeft,oy:fl.offsetTop,moved:false}; };
 doc.addEventListener('mousemove', e => { if(!drag) return; if(Math.abs(e.clientX-drag.sx)>4||Math.abs(e.clientY-drag.sy)>4) drag.moved=true; if(drag.moved){fl.style.right='auto';fl.style.bottom='auto';fl.style.left=(drag.ox+e.clientX-drag.sx)+'px';fl.style.top=(drag.oy+e.clientY-drag.sy)+'px';} });
 doc.addEventListener('mouseup', ()=>{ if(drag&&!drag.moved) toggleMenu(); drag=null; });
+
+/* 桌面歌词拖拽 */
+let lrcDrag = null;
+const dlrcEl = q('jkp-dlrc');
+dlrcEl.onmousedown = e => { e.preventDefault(); lrcDrag = {sx:e.clientX,sy:e.clientY,ox:dlrcEl.offsetLeft,oy:dlrcEl.offsetTop}; dlrcEl.classList.add('dragging'); dlrcEl.style.transform='none'; };
+doc.addEventListener('mousemove', e => { if(!lrcDrag) return; dlrcEl.style.left=(lrcDrag.ox+e.clientX-lrcDrag.sx)+'px'; dlrcEl.style.top=(lrcDrag.oy+e.clientY-lrcDrag.sy)+'px'; dlrcEl.style.bottom='auto'; });
+doc.addEventListener('mouseup', ()=>{ if(lrcDrag){ dlrcEl.classList.remove('dragging'); lrcDrag=null; } });
 
 function toggleMenu(){ menuOn=!menuOn; mn.style.display=menuOn?'block':'none'; bub.classList.remove('show'); }
 setTimeout(()=>{bub.classList.add('show');setTimeout(()=>bub.classList.remove('show'),4000);},1200);
