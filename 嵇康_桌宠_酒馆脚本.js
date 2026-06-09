@@ -260,18 +260,19 @@ doc.head.appendChild(style);
 /* ===== 注入 DOM ===== */
 const root = doc.createElement('div');
 root.id = PET_ID;
+root.style.cssText = 'position:fixed!important;top:0!important;left:0!important;width:100%!important;height:100%!important;z-index:2147483647!important;display:block!important;pointer-events:none!important;user-select:none;transform:none!important;overflow:visible!important;';
 root.innerHTML = `
 <div class="jkp-overlay" id="jkp-ov"></div>
-<div class="jkp-float" id="jkp-float">
+<div class="jkp-float" id="jkp-float" style="position:absolute!important;bottom:20px!important;right:40px!important;width:150px!important;height:150px!important;pointer-events:auto!important;display:block!important;opacity:1!important;visibility:visible!important;">
     <div class="jkp-bubble" id="jkp-bub">叔夜候君久矣</div>
-    <div class="jkp-avatar" id="jkp-av"><img src="${IMG_PET}" alt="嵇康"></div>
+    <div class="jkp-avatar" id="jkp-av"><img src="${IMG_PET}" alt="嵇康" style="max-width:100%!important;max-height:100%!important;display:block!important;visibility:visible!important;opacity:1!important;"></div>
     <div class="jkp-menu" id="jkp-menu">
         <div class="jkp-mi" data-a="letter">✉ 书信往来</div>
         <div class="jkp-mi" data-a="bag">🎒 行囊物品</div>
         <div class="jkp-mi" data-a="bgm">🎵 听曲</div>
     </div>
 </div>
-<div class="jkp-desk-lrc" id="jkp-dlrc"></div>
+<div class="jkp-desk-lrc" id="jkp-dlrc" style="position:absolute!important;bottom:180px!important;left:50%!important;transform:translateX(-50%);pointer-events:none;text-align:center;font-size:22px;letter-spacing:4px;display:block!important;visibility:visible!important;"></div>
 <div class="jkp-panel" id="jkp-p-letter"><div class="jkp-panel-hd"><img class="deco-l" src="https://files.catbox.moe/xmv6s8.png" style="position:absolute;left:10px;top:7px;height:30px;opacity:.7;pointer-events:none;"><span class="jkp-panel-title">书信往来</span><img class="deco-r" src="https://files.catbox.moe/nvlzew.png" style="position:absolute;right:42px;top:5px;height:26px;opacity:.6;pointer-events:none;"><span class="jkp-panel-x" data-close="letter">✕</span></div><div class="jkp-panel-bd" id="jkp-letter-bd"></div></div>
 <div class="jkp-panel" id="jkp-p-bag"><div class="jkp-panel-hd"><img src="https://files.catbox.moe/p75pn3.png" style="position:absolute;left:10px;top:7px;height:28px;opacity:.7;pointer-events:none;"><span class="jkp-panel-title">行囊</span><img src="https://files.catbox.moe/7kweml.png" style="position:absolute;right:42px;top:5px;height:28px;opacity:.6;pointer-events:none;"><span class="jkp-panel-x" data-close="bag">✕</span></div><div class="jkp-panel-bd" id="jkp-bag-bd"></div></div>
 <div class="jkp-panel" id="jkp-p-bgm"><div class="jkp-panel-hd"><img src="https://files.catbox.moe/lkkzes.png" style="position:absolute;left:10px;top:7px;height:28px;opacity:.7;pointer-events:none;"><span class="jkp-panel-title">听曲</span><img src="https://files.catbox.moe/gimtpi.png" style="position:absolute;right:42px;top:5px;height:28px;opacity:.6;pointer-events:none;"><span class="jkp-panel-x" data-close="bgm">✕</span></div><div class="jkp-panel-bd" id="jkp-bgm-bd"></div></div>
@@ -486,7 +487,9 @@ function tick(){
 
 function fmtT(s){if(!s||isNaN(s))return'0:00';return Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');}
 
-console.log('[嵇康桌宠] v3.0 已加载 — 立绘形态 / 自动播放 / 桌面歌词');
+console.log('[嵇康桌宠] v3.1 已加载 — 立绘形态 / 自动播放 / 桌面歌词');
+console.log('[嵇康桌宠] doc===document?', doc===document, '| root在DOM中?', doc.body.contains(root), '| root尺寸:', root.offsetWidth+'x'+root.offsetHeight);
+console.log('[嵇康桌宠] float元素:', doc.getElementById('jkp-float'), '| img元素:', root.querySelector('img'));
 }
 
 // 确保DOM加载完毕再初始化
